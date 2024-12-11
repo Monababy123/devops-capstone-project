@@ -68,7 +68,28 @@ def create_accounts():
 # READ AN ACCOUNT
 ######################################################################
 
-# ... place you code here to READ an account ...
+# ... place you code here to READ an account ...    ######################################################################
+   
+
+@app.route("/accounts/<int:account_id>", methods=["GET"])
+def read_account(account_id):
+    """
+    Reads an Account by ID.
+    If the account is found, it returns the account serialized as JSON.
+    If the account is not found, it aborts with a 404 Not Found.
+    """
+    app.logger.info("Request to read an Account with id: %s", account_id)
+    
+    # Attempt to find the account by ID
+    account = Account.find(account_id)
+    
+    # Abort with 404 if the account doesn't exist
+    if not account:
+        abort(status.HTTP_404_NOT_FOUND, f"Account with id {account_id} not found.")
+    
+    # Serialize the account and return it with HTTP_200_OK
+    return jsonify(account.serialize()), status.HTTP_200_OK
+
 
 
 ######################################################################
