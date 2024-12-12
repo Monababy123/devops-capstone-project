@@ -174,3 +174,15 @@ class TestAccountService(TestCase):
         non_existent_id = 99999  # Use an ID that is unlikely to exist
         resp = self.client.get(f"{BASE_URL}/{non_existent_id}")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_account(self):
+        """It should Delete an Account"""
+        account = self._create_accounts(1)[0]
+        resp = self.client.delete(f"{BASE_URL}/{account.id}")
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_account_not_found(self):
+        """It should return 204 NO CONTENT even if the account does not exist"""
+        non_existent_id = 99999  # Use an ID that is unlikely to exist
+        resp = self.client.delete(f"{BASE_URL}/{non_existent_id}")
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
