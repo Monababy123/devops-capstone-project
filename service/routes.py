@@ -1,4 +1,4 @@
-HEAD
+
 name: CI Build
 on:
   push:
