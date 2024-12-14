@@ -1,13 +1,14 @@
 name: CI Build
 
 on:
-  workflow_dispatch:  
+  workflow_dispatch:  # Allows manual triggering of the workflow
   push:
     branches:
-      - main  
+      - add-ci-build  # Triggers on push to the `add-ci-build` branch
   pull_request:
     branches:
-      - main  
+      - main  # Triggers when a pull request is created targeting the `main` branch
+ 
 
 jobs:
   build:
