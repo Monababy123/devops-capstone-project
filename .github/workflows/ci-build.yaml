@@ -1,14 +1,13 @@
 name: CI Build
 
 on:
-  workflow_dispatch:  # This enables manual triggering
+  workflow_dispatch:  
   push:
     branches:
-      - main  # This triggers the workflow when changes are pushed to the main branch
+      - main  
   pull_request:
     branches:
-      - main  # This triggers the workflow for pull requests targeting the main branch
-
+      - main 
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,5 +30,6 @@ jobs:
         run: nosetests
         env:
           DATABASE_URI: "postgresql://postgres:pgs3cr3t@postgres:5432/testdb"
+        
 
         
