@@ -23,7 +23,6 @@ jobs:
       POSTGRES_DB: testdb
     options: >-
       --health-cmd pg_isready
-      --health-interval 10  # Fixed, no quotes or colon
       --health-timeout 5s
       --health-retries 5
 
