@@ -1,27 +1,57 @@
-"""
-Account Service
 
-This microservice handles the lifecycle of Accounts
-"""
-# pylint: disable=unused-import
-from flask import jsonify, request, make_response, abort, url_for   # noqa; F401
-from service.models import Account
-from service.common import status  # HTTP Status Codes
-from . import app  # Import Flask application
+name: CI Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: python:3.9-slim
+
+   services:
+  postgres:
+    image: postgres:alpine
+    ports:
+      - 5432:5432
+    env:
+      POSTGRES_PASSWORD: pgs3cr3t
+      POSTGRES_DB: testdb
+    options: >-
+      --health-cmd pg_isready
+      --health-timeout 5s
+      --health-retries 5
 
 
-############################################################
-# Health Endpoint
-############################################################
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 @app.route("/health")
 def health():
     """Health Status"""
     return jsonify(dict(status="OK")), status.HTTP_200_OK
+54ec043feaf31ad63f01165f234d912e900b9068
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -r requirements.txt
 
-######################################################################
-# GET INDEX
-######################################################################
+HEAD
+      - name: Lint with flake8
+        run: |
+          flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run unit tests with nose
+        run: nosetests
+        env:
+          DATABASE_URI: "postgresql://postgres:pgs3cr3t@postgres:5432/testdb"
+
 @app.route("/")
 def index():
     """Root URL response"""
@@ -29,20 +59,17 @@ def index():
         jsonify(
             name="Account REST API Service",
             version="1.0",
-            # paths=url_for("list_accounts", _external=True),
         ),
         status.HTTP_200_OK,
     )
 
 
-######################################################################
-# CREATE A NEW ACCOUNT
-######################################################################
 @app.route("/accounts", methods=["POST"])
 def create_accounts():
     """
     Creates an Account
-    This endpoint will create an Account based the data in the body that is posted
+    This endpoint will create an Account based on the data in the body that \
+    is posted.
     """
     app.logger.info("Request to create an Account")
     check_content_type("application/json")
@@ -50,133 +77,11 @@ def create_accounts():
     account.deserialize(request.get_json())
     account.create()
     message = account.serialize()
-    # Uncomment once get_accounts has been implemented
-    # location_url = url_for("get_accounts", account_id=account.id, _external=True)
+    location_url = url_for(
+        "get_accounts", account_id=account.id, _external=True
+    )
     location_url = "/"  # Remove once get_accounts has been implemented
     return make_response(
         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     )
-
-######################################################################
-# LIST ALL ACCOUNTS
-######################################################################
-
-# ... place you code here to LIST accounts ...
-
-    ######################################################################
-    # LIST ALL ACCOUNTS
-    ######################################################################
-    
-@app.route("/accounts", methods=["GET"])
-def list_accounts():
-    """Returns a List all Accounts"""
-    app.logger.info("Request to list Accounts...")
-
-    accounts = Account.all()
-
-    account_list = [account.serialize() for account in accounts]
-    app.logger.info("Returning [%s] accounts", len(account_list))
-    return jsonify(account_list), status.HTTP_200_OK
-
-
-
-
-######################################################################
-# READ AN ACCOUNT
-######################################################################
-
-# ... place you code here to READ an account ...    ######################################################################
-   
-
-@app.route("/accounts/<int:account_id>", methods=["GET"])
-def read_account(account_id):
-    """
-    Reads an Account by ID.
-    If the account is found, it returns the account serialized as JSON.
-    If the account is not found, it aborts with a 404 Not Found.
-    """
-    app.logger.info("Request to read an Account with id: %s", account_id)
-    
-    # Attempt to find the account by ID
-    account = Account.find(account_id)
-    
-    # Abort with 404 if the account doesn't exist
-    if not account:
-        abort(status.HTTP_404_NOT_FOUND, f"Account with id {account_id} not found.")
-    
-    # Serialize the account and return it with HTTP_200_OK
-    return jsonify(account.serialize()), status.HTTP_200_OK
-
-
-
-######################################################################
-# UPDATE AN EXISTING ACCOUNT
-######################################################################
-
-# ... place you code here to UPDATE an account ...
-
-@app.route("/accounts/<int:account_id>", methods=["PUT"])
-def update_accounts(account_id):
-    """
-    Update an Account
-    This endpoint will update an Account based on the posted data
-    """
-    app.logger.info("Request to update an Account with id: %s", account_id)
-
-    # Find the account by ID
-    account = Account.find(account_id)
-    if not account:
-        abort(status.HTTP_404_NOT_FOUND, f"Account with id [{account_id}] could not be found.")
-
-    # Deserialize the request JSON into the account object
-    account.deserialize(request.get_json())
-    
-    # Update the account in the database
-    account.update()
-
-    # Return the updated account serialized as JSON with a 200 OK status
-    return jsonify(account.serialize()), status.HTTP_200_OK
-
-
-######################################################################
-# DELETE AN ACCOUNT
-######################################################################
-
-# ... place you code here to DELETE an account ...
-  
-@app.route("/accounts/<int:account_id>", methods=["DELETE"])
-def delete_accounts(account_id):
-    """
-    Delete an Account
-    This endpoint will delete an Account based on the account_id that is requested
-    """
-    app.logger.info("Request to delete an Account with id: %s", account_id)
-
-    account = Account.find(account_id)
-    if account:
-        account.delete()
-        app.logger.info("Account with id %s deleted.", account_id)
-    else:
-        app.logger.warning("Account with id %s not found. Nothing to delete.", account_id)
-
-    return "", status.HTTP_204_NO_CONTENT
-
-
-    
-
-    
-######################################################################
-#  U T I L I T Y   F U N C T I O N S
-######################################################################
-
-
-def check_content_type(media_type):
-    """Checks that the media type is correct"""
-    content_type = request.headers.get("Content-Type")
-    if content_type and content_type == media_type:
-        return
-    app.logger.error("Invalid Content-Type: %s", content_type)
-    abort(
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        f"Content-Type must be {media_type}",
-    )
+54ec043feaf31ad63f01165f234d912e900b9068
