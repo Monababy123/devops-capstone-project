@@ -1,4 +1,3 @@
-
 name: CI Build
 on:
   push:
@@ -25,7 +24,6 @@ jobs:
       --health-cmd pg_isready
       --health-timeout 5s
       --health-retries 5
-
 
     steps:
       - name: Checkout
