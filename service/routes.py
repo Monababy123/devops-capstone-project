@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.9-slim
 
-   services:
+services:
   postgres:
     image: postgres:alpine
     ports:
@@ -21,25 +21,20 @@ jobs:
       POSTGRES_PASSWORD: pgs3cr3t
       POSTGRES_DB: testdb
     options: >-
-      --health-cmd pg_isready
-      --health-timeout 5s
-      --health-retries 5
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-@app.route("/health")
-def health():
-    """Health Status"""
-    return jsonify(dict(status="OK")), status.HTTP_200_OK
-54ec043feaf31ad63f01165f234d912e900b9068
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel
           pip install -r requirements.txt
 
-HEAD
       - name: Lint with flake8
         run: |
           flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -61,7 +56,6 @@ def index():
         status.HTTP_200_OK,
     )
 
-
 @app.route("/accounts", methods=["POST"])
 def create_accounts():
     """
@@ -82,4 +76,11 @@ def create_accounts():
     return make_response(
         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     )
+
+@app.route("/health")
+def health():
+    """Health Status"""
+    return jsonify(dict(status="OK")), status.HTTP_200_OK
+
 54ec043feaf31ad63f01165f234d912e900b9068
+
